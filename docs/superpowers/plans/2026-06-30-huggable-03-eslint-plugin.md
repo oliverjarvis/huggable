@@ -80,14 +80,23 @@ Expected: FAIL — cannot resolve `no-banned-fonts.js`.
 import type { Rule } from "eslint";
 import type { Node } from "estree";
 
-/** True if a `// huggable-allow` comment sits on the node's line or the line directly above it. */
+/** True if a `// huggable-allow: <reason>` comment applies to this node: either a trailing
+ * comment on the node's own line, OR a STANDALONE comment on the line directly above it.
+ * A standalone-above requirement prevents a trailing comment on line N from leaking onto the
+ * node on line N+1 (which would silently punch holes in the enforcement floor). */
 export function hasAllowComment(node: Node, sourceCode: Rule.RuleContext["sourceCode"]): boolean {
   if (!node.loc) return false;
   const line = node.loc.start.line;
   return sourceCode.getAllComments().some((comment) => {
     if (!comment.loc) return false;
-    const onSameOrPrevLine = comment.loc.end.line === line || comment.loc.end.line === line - 1;
-    return onSameOrPrevLine && /huggable-allow/.test(comment.value);
+    if (!/huggable-allow:\s*\S/.test(comment.value)) return false; // require a reason
+    if (comment.loc.end.line === line) return true; // trailing comment on the node's line
+    if (comment.loc.start.line === line - 1) {
+      // standalone only: nothing but whitespace before the comment on its line
+      const lineText = sourceCode.lines[comment.loc.start.line - 1] ?? "";
+      return lineText.slice(0, comment.loc.start.column).trim() === "";
+    }
+    return false;
   });
 }
 ```
