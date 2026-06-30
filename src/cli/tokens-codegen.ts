@@ -1,11 +1,13 @@
 // src/cli/tokens-codegen.ts
-import { writeFileSync } from "node:fs";
+import { writeFileSync, mkdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { createJiti } from "jiti";
 import type { TokenSource } from "../tokens/types.js";
 import { validateTokenSource } from "../tokens/validate.js";
 import { generateRestyleTheme } from "../tokens/generate-restyle.js";
 import { generateStylexVars } from "../tokens/generate-stylex.js";
+
+const TARGETS = ["rn", "web", "both"] as const;
 
 export interface CodegenOptions {
   in: string;
@@ -22,10 +24,15 @@ async function loadTokenSource(path: string): Promise<TokenSource> {
 }
 
 export async function runCodegen(opts: CodegenOptions): Promise<{ written: string[] }> {
+  if (!TARGETS.includes(opts.target)) {
+    throw new Error(`invalid target "${opts.target}" (expected: ${TARGETS.join("|")})`);
+  }
+
   const src = await loadTokenSource(opts.in);
   const { errors } = validateTokenSource(src);
   if (errors.length) throw new Error(`invalid token source:\n - ${errors.join("\n - ")}`);
 
+  mkdirSync(opts.outDir, { recursive: true });
   const written: string[] = [];
   if (opts.target === "rn" || opts.target === "both") {
     const p = join(opts.outDir, "theme.ts");

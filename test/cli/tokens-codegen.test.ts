@@ -36,4 +36,11 @@ describe("runCodegen", () => {
     );
     await expect(runCodegen({ in: badPath, outDir: dir, target: "both" })).rejects.toThrow(/banned font/i);
   });
+
+  it("throws on an invalid target", async () => {
+    await expect(
+      // @ts-expect-error intentionally invalid target
+      runCodegen({ in: tokensPath, outDir: dir, target: "typo" }),
+    ).rejects.toThrow(/invalid target/i);
+  });
 });
