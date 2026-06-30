@@ -14,6 +14,7 @@ ruleTester.run("no-magic-number", noMagicNumber, {
     { code: `const s = { padding: 13 }; // huggable-allow: third-party widget` },
     { code: `<Box p={16} /* huggable-allow: temp */ />;` },
     { code: `const s = { marginTop: -8 }; // huggable-allow: overlap` },
+    { code: `const s = { padding: 13 };`, options: [{ props: ["customSpace"] }] },
   ],
   invalid: [
     { code: `const s = { padding: 13 };`, errors: [{ messageId: "magic" }] },
@@ -22,5 +23,6 @@ ruleTester.run("no-magic-number", noMagicNumber, {
     { code: `<Box p={13} />;`, errors: [{ messageId: "magic" }] },
     { code: `const s = { marginTop: -8 };`, errors: [{ messageId: "magic" }] },
     { code: `<Box p={-4} />;`, errors: [{ messageId: "magic" }] },
+    { code: `const s = { customSpace: 13 };`, options: [{ props: ["customSpace"] }], errors: [{ messageId: "magic" }] },
   ],
 });

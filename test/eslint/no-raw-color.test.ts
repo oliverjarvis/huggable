@@ -18,5 +18,16 @@ ruleTester.run("no-raw-color", noRawColor, {
     { code: `const c = "#10100Fff";`, errors: [{ messageId: "rawColor" }] },
     { code: `const c = "rgba(0,0,0,0.5)";`, errors: [{ messageId: "rawColor" }] },
     { code: `<Box style={{ backgroundColor: "#000" }} />;`, errors: [{ messageId: "rawColor" }] },
+    {
+      code: [
+        "const s = {",
+        '  color: "#fff", // huggable-allow: brand',
+        '  background: "#000",',
+        "};",
+      ].join("\n"),
+      errors: [{ messageId: "rawColor" }],
+    },
+    { code: `const c = "hsl(0, 0%, 0%)";`, errors: [{ messageId: "rawColor" }] },
+    { code: `const c = "hsla(0,0%,0%,0.5)";`, errors: [{ messageId: "rawColor" }] },
   ],
 });
