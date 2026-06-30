@@ -491,7 +491,7 @@ describe("generateRestyleTheme", () => {
   it("resolves semantic colors to primitive hex via palette refs", () => {
     // bg.canvas -> paper50 -> #FBF9F4
     expect(out).toContain(`"bg.canvas": palette.paper50`);
-    expect(out).toContain(`paper50: "#FBF9F4"`);
+    expect(out).toContain(`"paper50": "#FBF9F4"`);
   });
   it("is deterministic", () => {
     expect(generateRestyleTheme(exampleTokens)).toBe(out);
@@ -516,7 +516,7 @@ import type { TokenSource, ThemeDef } from "./types.js";
 const j = (v: unknown) => JSON.stringify(v);
 
 function paletteBlock(src: TokenSource): string {
-  const entries = Object.entries(src.primitive.color).map(([k, v]) => `  ${k}: ${j(v)},`);
+  const entries = Object.entries(src.primitive.color).map(([k, v]) => `  ${j(k)}: ${j(v)},`);
   return `const palette = {\n${entries.join("\n")}\n};`;
 }
 
@@ -760,8 +760,10 @@ Expected: FAIL — `runCodegen` not found.
 
 ```ts
 // src/cli/tokens-codegen.ts
-import { writeFileSync } from "node:fs";
+import { writeFileSync, mkdirSync } from "node:fs";
 import { join, resolve } from "node:path";
+
+const TARGETS = ["rn", "web", "both"] as const;
 import { createJiti } from "jiti";
 import type { TokenSource } from "../tokens/types.js";
 import { validateTokenSource } from "../tokens/validate.js";
@@ -783,10 +785,14 @@ async function loadTokenSource(path: string): Promise<TokenSource> {
 }
 
 export async function runCodegen(opts: CodegenOptions): Promise<{ written: string[] }> {
+  if (!TARGETS.includes(opts.target)) {
+    throw new Error(`invalid target "${opts.target}" (expected: ${TARGETS.join("|")})`);
+  }
   const src = await loadTokenSource(opts.in);
   const { errors } = validateTokenSource(src);
   if (errors.length) throw new Error(`invalid token source:\n - ${errors.join("\n - ")}`);
 
+  mkdirSync(opts.outDir, { recursive: true });
   const written: string[] = [];
   if (opts.target === "rn" || opts.target === "both") {
     const p = join(opts.outDir, "theme.ts");
@@ -876,3 +882,23 @@ git commit -m "feat(cli): add tokens-codegen (load app tokens via jiti, validate
 **3. Type consistency:** `TokenSource`/`PrimitiveTokens`/`SemanticTokens`/`ThemeDef`/`TextVariant` defined in Task 2 and used identically in Tasks 3–6. `generateRestyleTheme`, `generateStylexVars`, `toVarKey`, `validateTokenSource`, `runCodegen`/`CodegenOptions` signatures match between their defining task and the CLI consumer in Task 6. ✓
 
 **Note for executor:** snapshot files are created on first test run; review them once for valid TS before committing. The CLI uses `jiti` to load TS token modules at runtime — no precompile needed.
+
+---
+
+## Post-Review Amendments (applied during execution)
+
+Changes made during the SDD review loops, beyond the original task text above:
+
+- **Task 1:** added `@types/node` to devDependencies so `npm run typecheck` works (the CLI uses `node:*` modules).
+- **Task 3:** added two tests — TextVariant-ref error path and the min-font-size warning path.
+- **Task 4:** quote palette keys (`${j(k)}`) so non-identifier-safe color names emit valid TS.
+- **Task 6:** validate `--target` (throw on invalid instead of silently emitting nothing) and `mkdirSync(outDir, { recursive: true })` before writes.
+- **Final review (Important):**
+  - `generate-restyle.ts` now emits a `breakpoints` block (Restyle's `BaseTheme` requires it). Sourced from an optional `PrimitiveTokens.breakpoints`, defaulting to `{ phone: 0, tablet: 768 }`.
+  - `validateTokenSource` now errors if any theme's semantic color/text key set differs from the base (first) theme — prevents web/RN drift, since the StyleX generator builds `defineVars` from the base theme only.
+
+**Carry-over to Plan 02 (component system):**
+1. The StyleX/web generator currently emits only `colors` + `spacing`; add `radius` + `text` (typography) to web output before components consume it.
+2. Export a single canonical key-derivation helper (`toVarKey` for web + an RN dotted-key counterpart) from the token layer so RN (dotted keys) and web (identifiers) cannot drift.
+
+**Final state:** 24 tests passing, `typecheck` exit 0.
