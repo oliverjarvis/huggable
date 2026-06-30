@@ -1,0 +1,5 @@
+{
+  "name": "huggable",
+  "version": "0.1.0",
+  "description": "Deterministically create, follow, and migrate-to coherent, non-slop design systems for React (StyleX) + React Native (Restyle)."
+}
