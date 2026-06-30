@@ -41,4 +41,18 @@ describe("validateTokenSource", () => {
     const { warnings } = validateTokenSource(bad);
     expect(warnings.some((w) => /below the 12px floor/i.test(w))).toBe(true);
   });
+
+  it("rejects a theme whose semantic color keys differ from the base theme", () => {
+    const bad = structuredClone(exampleTokens);
+    delete (bad.themes[1].semantic.color as Record<string, string>)["accent.default"];
+    const { errors } = validateTokenSource(bad);
+    expect(errors.some((e) => /semantic color keys differ/i.test(e))).toBe(true);
+  });
+
+  it("rejects a theme whose semantic text keys differ from the base theme", () => {
+    const bad = structuredClone(exampleTokens);
+    delete (bad.themes[2].semantic.text as Record<string, unknown>)["caption"];
+    const { errors } = validateTokenSource(bad);
+    expect(errors.some((e) => /semantic text keys differ/i.test(e))).toBe(true);
+  });
 });

@@ -52,6 +52,10 @@ export const lightTheme = createTheme({
     "xl": 24,
     "full": 9999,
   },
+  breakpoints: {
+    "phone": 0,
+    "tablet": 768,
+  },
   textVariants: {
     "heading": { fontFamily: "Clash Display", fontSize: 40, lineHeight: 48, fontWeight: "700" },
     "body": { fontFamily: "Geist", fontSize: 16, lineHeight: 26, fontWeight: "400" },
@@ -94,6 +98,10 @@ export const darkTheme = createTheme({
     "xl": 24,
     "full": 9999,
   },
+  breakpoints: {
+    "phone": 0,
+    "tablet": 768,
+  },
   textVariants: {
     "heading": { fontFamily: "Clash Display", fontSize: 40, lineHeight: 48, fontWeight: "700" },
     "body": { fontFamily: "Geist", fontSize: 16, lineHeight: 26, fontWeight: "400" },
@@ -135,6 +143,10 @@ export const brandTheme = createTheme({
     "lg": 16,
     "xl": 24,
     "full": 9999,
+  },
+  breakpoints: {
+    "phone": 0,
+    "tablet": 768,
   },
   textVariants: {
     "heading": { fontFamily: "Clash Display", fontSize: 40, lineHeight: 48, fontWeight: "700" },

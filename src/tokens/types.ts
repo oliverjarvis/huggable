@@ -13,6 +13,7 @@ export interface PrimitiveTokens {
   zIndex: Record<string, number>;
   duration: Record<string, number>;
   easing: Record<string, string>;
+  breakpoints?: Record<string, number>;
 }
 
 export interface TextVariant {

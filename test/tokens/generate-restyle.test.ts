@@ -20,6 +20,10 @@ describe("generateRestyleTheme", () => {
     expect(out).toContain(`"bg.canvas": palette.paper50`);
     expect(out).toContain(`"paper50": "#FBF9F4"`);
   });
+  it("emits a breakpoints block (required by Restyle BaseTheme)", () => {
+    expect(out).toContain("breakpoints:");
+    expect(out).toContain(`"phone": 0`);
+  });
   it("is deterministic", () => {
     expect(generateRestyleTheme(exampleTokens)).toBe(out);
   });

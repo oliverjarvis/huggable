@@ -47,5 +47,20 @@ export function validateTokenSource(src: TokenSource): { errors: string[]; warni
   }
 
   if (src.themes.length === 0) errors.push("token source has no themes");
+
+  if (src.themes.length > 1) {
+    const base = src.themes[0];
+    const baseColors = Object.keys(base.semantic.color).sort().join(",");
+    const baseText = Object.keys(base.semantic.text).sort().join(",");
+    for (const theme of src.themes.slice(1)) {
+      if (Object.keys(theme.semantic.color).sort().join(",") !== baseColors) {
+        errors.push(`[${theme.name}] semantic color keys differ from base theme "${base.name}"`);
+      }
+      if (Object.keys(theme.semantic.text).sort().join(",") !== baseText) {
+        errors.push(`[${theme.name}] semantic text keys differ from base theme "${base.name}"`);
+      }
+    }
+  }
+
   return { errors, warnings };
 }

@@ -22,6 +22,8 @@ function themeBlock(src: TokenSource, theme: ThemeDef): string {
       return `    ${j(name)}: { fontFamily: ${j(src.primitive.fontFamily[tv.fontFamily])}, fontSize: ${src.primitive.fontSize[tv.fontSize]}, lineHeight: ${Math.round(src.primitive.fontSize[tv.fontSize] * src.primitive.lineHeight[tv.lineHeight])}, fontWeight: ${j(String(src.primitive.fontWeight[tv.fontWeight]))} },`;
     })
     .join("\n");
+  const bpSource = src.primitive.breakpoints ?? { phone: 0, tablet: 768 };
+  const breakpoints = Object.entries(bpSource).map(([k, v]) => `    ${j(k)}: ${v},`).join("\n");
   return `export const ${theme.name}Theme = createTheme({
   colors: {
 ${colors}
@@ -31,6 +33,9 @@ ${spacing}
   },
   borderRadii: {
 ${radii}
+  },
+  breakpoints: {
+${breakpoints}
   },
   textVariants: {
 ${textVariants}
