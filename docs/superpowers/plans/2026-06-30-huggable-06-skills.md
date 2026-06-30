@@ -185,7 +185,7 @@ Invoke the `frontend-design` skill for taste: the distinctive display+body type 
 State, in prose: 4–6 named hex colors, the display/body/mono typefaces, the spacing/type/radius personality, the motion budget, and the signature element. Then self-critique against the anti-slop list below and revise anything that reads as a default — say what you changed and why.
 
 ## 4. Write the token source
-Author `tokens.ts` as a two-tier `TokenSource` (see the type at `src/tokens/types.ts`): Tier-1 primitives (raw palette incl. oklch-extended shades, the Carbon-style even spacing ramp, radii, type scale, font families — never a banned font) and Tier-2 semantic maps with purpose/role names (`bg.canvas`, `text.body`, `surface.card`, `accent.default`). Ship light + dark (+ a brand variant) as semantic maps over the same primitives.
+Author `tokens.ts` as a two-tier `TokenSource` (see the type at `src/tokens/types.ts`): Tier-1 primitives (raw palette incl. oklch-extended shades, the Carbon-style even spacing ramp, radii, type scale, and font families, never a banned font) and Tier-2 semantic maps with purpose/role names. Colors like `bg.canvas`, `surface.card`, `accent.default` go in `semantic.color`; text roles like `body`/`heading`/`caption` go in `semantic.text`. Ship light + dark (and a brand variant) as semantic maps over the same primitives.
 
 ## 5. Generate + seed
 Run the codegen CLI at `src/cli/tokens-codegen.ts` (`--in tokens.ts --out-dir <app>/src/design --target rn|web|both`) to emit the Restyle theme (RN) and StyleX vars (web). Seed the Tier-1 primitives (Box/Text/Stack/Pressable/Icon) on the generated theme. Build variants with the `defineVariants` helper at `src/variants/define-variants.ts`. Register components via `src/registry/build-registry.ts`.
@@ -260,13 +260,13 @@ description: Use when a new UI component is needed, to create it so it adheres t
 The rule that prevents every screen becoming custom: build the new component from existing lower-order ones; only create a new primitive on a real gap.
 
 ## 1. Resolve, don't reinvent
-Query the component registry (`src/registry/build-registry.ts`) first. Resolve the request to the LOWEST tier that satisfies it, and compose from components that already exist. Create a new lower-tier primitive only if there is a genuine gap — then register it.
+Query the component registry (`src/registry/build-registry.ts`) first. Resolve the request to the LOWEST tier that satisfies it, and compose from components that already exist. Create a new lower-tier primitive only if there is a genuine gap, then register it.
 
 ## 2. Token-only styles
 Style exclusively through token props on the primitives (`<Box bg="surface.card" p="5" radius="md">`) — never raw hex/numbers. Express variants with `defineVariants` (`src/variants/define-variants.ts`): base + variant groups + defaults (+ compound/boolean), returning token-keyed style props.
 
 ## 3. Behavior
-For accessible behavior, build on the headless layer (RN: @rn-primitives; web: Base UI) — own the styled component, depend only on the behavior.
+For accessible behavior, build on the headless layer (RN: @rn-primitives; web: Base UI). Own the styled component; depend only on the behavior.
 
 ## 4. Register + gate
 Record the component's tier + dependencies in the registry. It is not "done" until `validateTierBoundaries` (`src/registry/validate-tiers.ts`) is clean and `huggable:audit` is green.

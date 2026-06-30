@@ -10,6 +10,10 @@ const skillsDir = join(repoRoot, "skills");
 describe("huggable skills", () => {
   const names = readdirSync(skillsDir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
 
+  it("has exactly the four skills", () => {
+    expect(names.sort()).toEqual(["add-component", "audit", "establish", "migrate"]);
+  });
+
   for (const name of names) {
     it(`${name}/SKILL.md is valid (frontmatter + src refs exist)`, () => {
       const md = readFileSync(join(skillsDir, name, "SKILL.md"), "utf8");
