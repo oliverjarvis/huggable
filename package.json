@@ -4,10 +4,12 @@
   "description": "Deterministic design-system plugin: create, follow, and migrate-to design systems for React + React Native.",
   "type": "module",
   "engines": { "node": ">=20" },
+  "bin": { "huggable-tokens-codegen": "src/cli/tokens-codegen.ts" },
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "codegen": "tsx src/cli/tokens-codegen.ts"
   },
   "devDependencies": {
     "@types/node": "^20",
