@@ -1,6 +1,6 @@
 ---
 name: audit
-description: Use to check that UI is on-system before calling it done — runs the Huggable lint floor (and, where a runnable app exists, a screenshot critique) and reports off-system values + anti-slop violations.
+description: Use to check that UI is on-system before calling it done; it runs the Huggable lint floor (and, where a runnable app exists, a screenshot critique) and reports off-system values + anti-slop violations.
 ---
 
 # Audit on-system-ness
