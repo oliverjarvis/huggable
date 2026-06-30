@@ -5,16 +5,16 @@ exports[`generateRestyleTheme > matches snapshot 1`] = `
 import { createTheme } from "@shopify/restyle";
 
 const palette = {
-  ink900: "#10100F",
-  ink600: "#4A4A46",
-  paper50: "#FBF9F4",
-  paper100: "#F1ECE1",
-  clay500: "#C2410C",
-  clay300: "#FB923C",
-  sage700: "#3F5C4E",
-  line200: "#E2DCCD",
-  white: "#FFFFFF",
-  black: "#000000",
+  "ink900": "#10100F",
+  "ink600": "#4A4A46",
+  "paper50": "#FBF9F4",
+  "paper100": "#F1ECE1",
+  "clay500": "#C2410C",
+  "clay300": "#FB923C",
+  "sage700": "#3F5C4E",
+  "line200": "#E2DCCD",
+  "white": "#FFFFFF",
+  "black": "#000000",
 };
 
 export const lightTheme = createTheme({

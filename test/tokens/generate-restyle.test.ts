@@ -18,7 +18,7 @@ describe("generateRestyleTheme", () => {
   it("resolves semantic colors to primitive hex via palette refs", () => {
     // bg.canvas -> paper50 -> #FBF9F4
     expect(out).toContain(`"bg.canvas": palette.paper50`);
-    expect(out).toContain(`paper50: "#FBF9F4"`);
+    expect(out).toContain(`"paper50": "#FBF9F4"`);
   });
   it("is deterministic", () => {
     expect(generateRestyleTheme(exampleTokens)).toBe(out);

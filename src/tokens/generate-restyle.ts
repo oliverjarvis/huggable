@@ -3,7 +3,7 @@ import type { TokenSource, ThemeDef } from "./types.js";
 const j = (v: unknown) => JSON.stringify(v);
 
 function paletteBlock(src: TokenSource): string {
-  const entries = Object.entries(src.primitive.color).map(([k, v]) => `  ${k}: ${j(v)},`);
+  const entries = Object.entries(src.primitive.color).map(([k, v]) => `  ${j(k)}: ${j(v)},`);
   return `const palette = {\n${entries.join("\n")}\n};`;
 }
 
