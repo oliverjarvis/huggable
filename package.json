@@ -3,8 +3,12 @@
   "version": "0.1.0",
   "description": "Deterministic design-system plugin: create, follow, and migrate-to design systems for React + React Native.",
   "type": "module",
-  "engines": { "node": ">=20" },
-  "bin": { "huggable-tokens-codegen": "src/cli/tokens-codegen.ts" },
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "huggable-tokens-codegen": "src/cli/tokens-codegen.ts"
+  },
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
@@ -12,6 +16,7 @@
     "codegen": "tsx src/cli/tokens-codegen.ts"
   },
   "devDependencies": {
+    "@types/estree-jsx": "^1.0.5",
     "@types/node": "^20",
     "eslint": "^9.13.0",
     "jiti": "^2.4.0",
