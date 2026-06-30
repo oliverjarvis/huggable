@@ -27,3 +27,10 @@ describe("snapColor", () => {
     expect(snapColor("rgb(0,0,0)", PALETTE)).toEqual({ status: "flagged", nearest: "", distance: Infinity });
   });
 });
+
+describe("snap with empty scale/palette", () => {
+  it("flags when the scale/palette is empty", () => {
+    expect(snapNumber(8, {})).toEqual({ status: "flagged", nearest: "", distance: Infinity });
+    expect(snapColor("#FFFFFF", {})).toEqual({ status: "flagged", nearest: "", distance: Infinity });
+  });
+});
