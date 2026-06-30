@@ -25,4 +25,8 @@ describe("scanStyleValues", () => {
     const nums = scanStyleValues(`const s = { padding: 0 };`).filter((f) => f.kind === "number");
     expect(nums).toEqual([]);
   });
+  it("captures negative magic numbers on style props", () => {
+    const nums = scanStyleValues(`const s = { marginTop: -8, count: -3 };`).filter((f) => f.kind === "number");
+    expect(nums).toEqual([{ prop: "marginTop", raw: -8, kind: "number", line: 1 }]);
+  });
 });

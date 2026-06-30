@@ -93,7 +93,7 @@ export const STYLE_NUMBER_PROPS = new Set<string>([
 
 ```ts
 // src/migrate/scan.ts
-import { Project, Node } from "ts-morph";
+import { Project, Node, SyntaxKind } from "ts-morph";
 import { STYLE_NUMBER_PROPS } from "./style-props.js";
 
 export interface StyleFinding {
@@ -104,6 +104,21 @@ export interface StyleFinding {
 }
 
 const COLOR = /^(?:#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})|(?:rgb|rgba|hsl|hsla)\([^)]*\))$/;
+
+/** Numeric value of a NumericLiteral OR a unary +/- numeric literal — so negative
+ * style values like `margin: -8` are captured (they parse as PrefixUnaryExpression). */
+export function numericValueOf(node: Node): number | null {
+  if (Node.isNumericLiteral(node)) return node.getLiteralValue();
+  if (Node.isPrefixUnaryExpression(node)) {
+    const op = node.getOperatorToken();
+    const operand = node.getOperand();
+    if (Node.isNumericLiteral(operand) && (op === SyntaxKind.MinusToken || op === SyntaxKind.PlusToken)) {
+      const v = operand.getLiteralValue();
+      return op === SyntaxKind.MinusToken ? -v : v;
+    }
+  }
+  return null;
+}
 
 export function scanStyleValues(sourceText: string, opts: { numberProps?: Set<string> } = {}): StyleFinding[] {
   const numberProps = opts.numberProps ?? STYLE_NUMBER_PROPS;
@@ -123,9 +138,9 @@ export function scanStyleValues(sourceText: string, opts: { numberProps?: Set<st
       if (COLOR.test(value.trim())) findings.push({ prop: name, raw: value, kind: "color", line });
       return;
     }
-    if (Node.isNumericLiteral(init)) {
-      const value = Number(init.getLiteralValue());
-      if (value !== 0 && numberProps.has(name)) findings.push({ prop: name, raw: value, kind: "number", line });
+    const num = numericValueOf(init);
+    if (num !== null && num !== 0 && numberProps.has(name)) {
+      findings.push({ prop: name, raw: num, kind: "number", line });
     }
   });
 
@@ -440,6 +455,7 @@ Expected: FAIL — module not found.
 ```ts
 // src/migrate/codemod.ts
 import { Project, Node } from "ts-morph";
+import { numericValueOf } from "./scan.js";
 import type { Mapping } from "./plan.js";
 
 export function applyTokenCodemod(
@@ -464,7 +480,8 @@ export function applyTokenCodemod(
     if (!init) return;
 
     let raw: string | null = null;
-    if (Node.isNumericLiteral(init)) raw = String(Number(init.getLiteralValue()));
+    const num = numericValueOf(init);
+    if (num !== null) raw = String(num);
     else if (Node.isStringLiteral(init)) raw = init.getLiteralValue();
     if (raw === null) return;
 
