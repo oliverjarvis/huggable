@@ -229,7 +229,7 @@ export function snapNumber(value: number, scale: Record<string, number>, toleran
   let bestDist = Infinity;
   for (const [token, v] of Object.entries(scale)) {
     const d = Math.abs(v - value);
-    if (d < bestDist) {
+    if (d <= bestDist) { // <= : on an exact tie, the later token in iteration order wins
       bestDist = d;
       best = token;
     }
@@ -260,7 +260,7 @@ export function snapColor(hex: string, palette: Record<string, string>, toleranc
     const prgb = hexToRgb(value);
     if (!prgb) continue;
     const d = Math.sqrt((rgb[0] - prgb[0]) ** 2 + (rgb[1] - prgb[1]) ** 2 + (rgb[2] - prgb[2]) ** 2);
-    if (d < bestDist) {
+    if (d <= bestDist) { // <= : on an exact tie, the later token in iteration order wins
       bestDist = d;
       best = token;
     }
