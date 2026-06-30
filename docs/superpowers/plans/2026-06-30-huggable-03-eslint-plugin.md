@@ -286,7 +286,7 @@ Expected: FAIL — module not found.
 ```ts
 // src/eslint/rules/no-magic-number.ts
 import type { Rule } from "eslint";
-import type { Node, Property, Literal } from "estree";
+import type { Node, Property, Literal, UnaryExpression } from "estree";
 import type { JSXAttribute } from "estree-jsx";
 import { hasAllowComment } from "../allow-comment.js";
 
@@ -317,12 +317,28 @@ export const noMagicNumber: Rule.RuleModule = {
     const opts = (context.options[0] ?? {}) as { props?: string[] };
     const props = new Set(opts.props ?? DEFAULT_PROPS);
 
+    // Resolve a signed numeric value from a Literal or a unary +/- on a numeric Literal
+    // (so negative offsets like marginTop: -8 / p={-4} are caught, not just positives).
+    function numericValue(node: Node): number | null {
+      if (node.type === "Literal" && typeof node.value === "number") return node.value;
+      if (
+        node.type === "UnaryExpression" &&
+        (node.operator === "-" || node.operator === "+") &&
+        (node as UnaryExpression).argument.type === "Literal" &&
+        typeof ((node as UnaryExpression).argument as Literal).value === "number"
+      ) {
+        const n = ((node as UnaryExpression).argument as Literal).value as number;
+        return node.operator === "-" ? -n : n;
+      }
+      return null;
+    }
+
     function check(prop: string, valueNode: Node | null | undefined): void {
-      if (!valueNode || valueNode.type !== "Literal") return;
-      const lit = valueNode as Literal;
-      if (typeof lit.value !== "number" || lit.value === 0) return;
+      if (!valueNode) return;
+      const value = numericValue(valueNode);
+      if (value === null || value === 0) return; // 0 (and -0) allowed
       if (hasAllowComment(valueNode, sourceCode)) return;
-      context.report({ node: valueNode, messageId: "magic", data: { prop, value: String(lit.value) } });
+      context.report({ node: valueNode, messageId: "magic", data: { prop, value: String(value) } });
     }
 
     return {

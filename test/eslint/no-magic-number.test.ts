@@ -13,11 +13,14 @@ ruleTester.run("no-magic-number", noMagicNumber, {
     { code: `const s = { zoom: 13 };` }, // not a tokenized prop
     { code: `const s = { padding: 13 }; // huggable-allow: third-party widget` },
     { code: `<Box p={16} /* huggable-allow: temp */ />;` },
+    { code: `const s = { marginTop: -8 }; // huggable-allow: overlap` },
   ],
   invalid: [
     { code: `const s = { padding: 13 };`, errors: [{ messageId: "magic" }] },
     { code: `const s = { marginTop: 16 };`, errors: [{ messageId: "magic" }] },
     { code: `const s = { borderRadius: 10 };`, errors: [{ messageId: "magic" }] },
     { code: `<Box p={13} />;`, errors: [{ messageId: "magic" }] },
+    { code: `const s = { marginTop: -8 };`, errors: [{ messageId: "magic" }] },
+    { code: `<Box p={-4} />;`, errors: [{ messageId: "magic" }] },
   ],
 });
