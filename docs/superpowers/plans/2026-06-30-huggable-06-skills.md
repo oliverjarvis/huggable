@@ -86,8 +86,8 @@ export function validateSkillFile(markdown: string, opts: ValidateOpts): string[
     errors.push("missing frontmatter block (--- ... ---)");
   } else {
     const body = fm[1];
-    const name = /^name:\s*(.*)$/m.exec(body)?.[1]?.trim();
-    const description = /^description:\s*(.*)$/m.exec(body)?.[1]?.trim();
+    const name = /^name:[ \t]*(.*)$/m.exec(body)?.[1]?.trim();
+    const description = /^description:[ \t]*(.*)$/m.exec(body)?.[1]?.trim();
     if (!name) errors.push("frontmatter is missing a non-empty name");
     if (!description) errors.push("frontmatter is missing a non-empty description");
   }
@@ -146,10 +146,6 @@ const skillsDir = join(repoRoot, "skills");
 describe("huggable skills", () => {
   const names = readdirSync(skillsDir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
 
-  it("has the four skills", () => {
-    expect(names.sort()).toEqual(["add-component", "audit", "establish", "migrate"]);
-  });
-
   for (const name of names) {
     it(`${name}/SKILL.md is valid (frontmatter + src refs exist)`, () => {
       const md = readFileSync(join(skillsDir, name, "SKILL.md"), "utf8");
@@ -160,10 +156,12 @@ describe("huggable skills", () => {
 });
 ```
 
+(The "exactly the four skills" count assertion is added in Task 3, once all four exist, so this task stays fully green with two valid skills.)
+
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd /Users/olliejarvis/Development/huggable && npx vitest run test/skills/skills.test.ts`
-Expected: FAIL — `skills` dir / files missing (and the "four skills" assertion fails). This task creates 2 of the 4; the suite goes fully green in Task 3.
+Expected: FAIL — the `skills/` directory and SKILL.md files don't exist yet.
 
 - [ ] **Step 3: Author `skills/establish/SKILL.md`**
 
@@ -224,10 +222,10 @@ Boot the app, screenshot the key screens, and critique them against the vocalize
 Report: off-system value count (target 0 on touched files), any tier violations, any unexplained `huggable-allow`, and the critique verdict. "Done" = all clear.
 ```
 
-- [ ] **Step 5: Run the test (expect the per-skill validations to pass; the "four skills" count still fails until Task 3)**
+- [ ] **Step 5: Run the test to verify it passes**
 
 Run: `cd /Users/olliejarvis/Development/huggable && npx vitest run test/skills/skills.test.ts`
-Expected: the `establish` and `audit` per-file validation tests PASS; the "has the four skills" test FAILS (only 2 exist). This is expected — Task 3 adds the other two and turns the suite green.
+Expected: PASS — both `establish` and `audit` validate clean (frontmatter present; every `src/...` reference resolves). Then run the full suite + `npm run typecheck` to confirm both green before committing.
 
 - [ ] **Step 6: Commit**
 
@@ -308,17 +306,27 @@ Run `huggable:audit` until off-system count is 0 on the batch and tier boundarie
 One batch = git checkpoint + audit + visual-regression gate, reviewable and revertible. Migrate by screen, not all at once.
 ```
 
-- [ ] **Step 3: Run the full skills suite to verify it goes green**
+- [ ] **Step 3: Add the "exactly four skills" assertion to `test/skills/skills.test.ts`**
+
+Inside the `describe("huggable skills", ...)` block, just before the `for (const name of names)` loop, add:
+
+```ts
+  it("has exactly the four skills", () => {
+    expect(names.sort()).toEqual(["add-component", "audit", "establish", "migrate"]);
+  });
+```
+
+- [ ] **Step 4: Run the full skills suite to verify it goes green**
 
 Run: `cd /Users/olliejarvis/Development/huggable && npx vitest run test/skills/skills.test.ts`
-Expected: PASS — "has the four skills" now passes, and all four per-skill validations pass (frontmatter present; every `src/...` reference resolves).
+Expected: PASS — the count assertion passes (all four skills exist) and all four per-skill validations pass (frontmatter present; every `src/...` reference resolves).
 
-- [ ] **Step 4: Run full suite + typecheck**
+- [ ] **Step 5: Run full suite + typecheck**
 
 Run: `cd /Users/olliejarvis/Development/huggable && npm test && npm run typecheck`
 Expected: all tests pass (Plans 01–04's 92 + this plan's cases); `tsc --noEmit` exits 0.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
 cd /Users/olliejarvis/Development/huggable
