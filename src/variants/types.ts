@@ -11,5 +11,5 @@ export interface VariantConfig {
   variants?: VariantGroups;
   defaultVariants?: Record<string, string | boolean>;
   /** each entry: variant conditions + the styles to apply when ALL match */
-  compoundVariants?: Array<Record<string, string | boolean> & { style: StyleProps }>;
+  compoundVariants?: Array<Record<string, string | boolean | StyleProps> & { style: StyleProps }>;
 }
