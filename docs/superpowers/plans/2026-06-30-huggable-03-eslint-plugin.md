@@ -80,14 +80,23 @@ Expected: FAIL — cannot resolve `no-banned-fonts.js`.
 import type { Rule } from "eslint";
 import type { Node } from "estree";
 
-/** True if a `// huggable-allow` comment sits on the node's line or the line directly above it. */
+/** True if a `// huggable-allow: <reason>` comment applies to this node: either a trailing
+ * comment on the node's own line, OR a STANDALONE comment on the line directly above it.
+ * A standalone-above requirement prevents a trailing comment on line N from leaking onto the
+ * node on line N+1 (which would silently punch holes in the enforcement floor). */
 export function hasAllowComment(node: Node, sourceCode: Rule.RuleContext["sourceCode"]): boolean {
   if (!node.loc) return false;
   const line = node.loc.start.line;
   return sourceCode.getAllComments().some((comment) => {
     if (!comment.loc) return false;
-    const onSameOrPrevLine = comment.loc.end.line === line || comment.loc.end.line === line - 1;
-    return onSameOrPrevLine && /huggable-allow/.test(comment.value);
+    if (!/huggable-allow:\s*\S/.test(comment.value)) return false; // require a reason
+    if (comment.loc.end.line === line) return true; // trailing comment on the node's line
+    if (comment.loc.start.line === line - 1) {
+      // standalone only: nothing but whitespace before the comment on its line
+      const lineText = sourceCode.lines[comment.loc.start.line - 1] ?? "";
+      return lineText.slice(0, comment.loc.start.column).trim() === "";
+    }
+    return false;
   });
 }
 ```
@@ -286,7 +295,7 @@ Expected: FAIL — module not found.
 ```ts
 // src/eslint/rules/no-magic-number.ts
 import type { Rule } from "eslint";
-import type { Node, Property, Literal } from "estree";
+import type { Node, Property, Literal, UnaryExpression } from "estree";
 import type { JSXAttribute } from "estree-jsx";
 import { hasAllowComment } from "../allow-comment.js";
 
@@ -317,12 +326,28 @@ export const noMagicNumber: Rule.RuleModule = {
     const opts = (context.options[0] ?? {}) as { props?: string[] };
     const props = new Set(opts.props ?? DEFAULT_PROPS);
 
+    // Resolve a signed numeric value from a Literal or a unary +/- on a numeric Literal
+    // (so negative offsets like marginTop: -8 / p={-4} are caught, not just positives).
+    function numericValue(node: Node): number | null {
+      if (node.type === "Literal" && typeof node.value === "number") return node.value;
+      if (
+        node.type === "UnaryExpression" &&
+        (node.operator === "-" || node.operator === "+") &&
+        (node as UnaryExpression).argument.type === "Literal" &&
+        typeof ((node as UnaryExpression).argument as Literal).value === "number"
+      ) {
+        const n = ((node as UnaryExpression).argument as Literal).value as number;
+        return node.operator === "-" ? -n : n;
+      }
+      return null;
+    }
+
     function check(prop: string, valueNode: Node | null | undefined): void {
-      if (!valueNode || valueNode.type !== "Literal") return;
-      const lit = valueNode as Literal;
-      if (typeof lit.value !== "number" || lit.value === 0) return;
+      if (!valueNode) return;
+      const value = numericValue(valueNode);
+      if (value === null || value === 0) return; // 0 (and -0) allowed
       if (hasAllowComment(valueNode, sourceCode)) return;
-      context.report({ node: valueNode, messageId: "magic", data: { prop, value: String(lit.value) } });
+      context.report({ node: valueNode, messageId: "magic", data: { prop, value: String(value) } });
     }
 
     return {
