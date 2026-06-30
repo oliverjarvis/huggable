@@ -1,5 +1,5 @@
-/** A token-keyed style object, e.g. { bg: "surface.card", px: "5" }. */
-export type StyleProps = Record<string, string>;
+/** Style object: values are token KEYS (strings, e.g. bg: "surface.card") or raw pass-through values for non-tokenized props (numbers/booleans, e.g. opacity: 0.5, flex: 1). */
+export type StyleProps = Record<string, string | number | boolean>;
 
 /** variant group name -> variant value -> styles, e.g. { size: { sm: {...}, md: {...} } } */
 export type VariantGroups = Record<string, Record<string, StyleProps>>;

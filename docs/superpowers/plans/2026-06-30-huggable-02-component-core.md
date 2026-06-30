@@ -74,8 +74,10 @@ Expected: FAIL — cannot resolve `define-variants.js`.
 
 ```ts
 // src/variants/types.ts
-/** A token-keyed style object, e.g. { bg: "surface.card", px: "5" }. */
-export type StyleProps = Record<string, string>;
+/** A style object whose values are either token KEYS (strings, e.g. bg: "surface.card",
+ * px: "5") or raw pass-through values for non-tokenized props (numbers/booleans, e.g.
+ * opacity: 0.5, flex: 1). The linter (Plan 03) distinguishes tokenized vs pass-through props. */
+export type StyleProps = Record<string, string | number | boolean>;
 
 /** variant group name -> variant value -> styles, e.g. { size: { sm: {...}, md: {...} } } */
 export type VariantGroups = Record<string, Record<string, StyleProps>>;
@@ -86,8 +88,10 @@ export interface VariantConfig {
   base?: StyleProps;
   variants?: VariantGroups;
   defaultVariants?: Record<string, string | boolean>;
-  /** each entry: variant conditions + the styles to apply when ALL match */
-  compoundVariants?: Array<Record<string, string | boolean> & { style: StyleProps }>;
+  /** each entry: variant conditions + the styles to apply when ALL match.
+   * The index union includes StyleProps so the `style` key (StyleProps) doesn't
+   * contradict the index; condition values are string|boolean at runtime. */
+  compoundVariants?: Array<Record<string, string | boolean | StyleProps> & { style: StyleProps }>;
 }
 ```
 
@@ -155,7 +159,7 @@ const chip = defineVariants({
   },
   defaultVariants: { tone: "primary", disabled: false },
   compoundVariants: [
-    { tone: "primary", disabled: true, style: { bg: "border.subtle", opacity: "0.5" } },
+    { tone: "primary", disabled: true, style: { bg: "border.subtle", opacity: 0.5 } },
   ],
 });
 
@@ -164,7 +168,7 @@ describe("defineVariants (compound + boolean)", () => {
     expect(chip({ disabled: true })).toEqual({
       radius: "full",
       bg: "border.subtle", // compound override wins over the disabled=true variant
-      opacity: "0.5",
+      opacity: 0.5,
     });
   });
   it("does not apply a compound variant when conditions do not all match", () => {
@@ -319,7 +323,9 @@ export interface Registry {
 import type { ComponentMeta, Registry } from "./types.js";
 
 export function buildRegistry(components: ComponentMeta[]): Registry {
-  const map: Record<string, ComponentMeta> = {};
+  // prototype-less map: avoids "constructor"/"toString" key hazards in both the
+  // duplicate guard here and reg.components[depName] lookups in validateTierBoundaries.
+  const map: Record<string, ComponentMeta> = Object.create(null);
   for (const c of components) {
     if (map[c.name]) throw new Error(`duplicate component "${c.name}" in registry`);
     map[c.name] = c;

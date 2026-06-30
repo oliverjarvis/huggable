@@ -9,7 +9,7 @@ const chip = defineVariants({
   },
   defaultVariants: { tone: "primary", disabled: false },
   compoundVariants: [
-    { tone: "primary", disabled: true, style: { bg: "border.subtle", opacity: "0.5" } },
+    { tone: "primary", disabled: true, style: { bg: "border.subtle", opacity: 0.5 } },
   ],
 });
 
@@ -18,7 +18,7 @@ describe("defineVariants (compound + boolean)", () => {
     expect(chip({ disabled: true })).toEqual({
       radius: "full",
       bg: "border.subtle", // compound override wins over the disabled=true variant
-      opacity: "0.5",
+      opacity: 0.5,
     });
   });
   it("does not apply a compound variant when conditions do not all match", () => {
