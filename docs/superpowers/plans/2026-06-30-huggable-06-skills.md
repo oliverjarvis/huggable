@@ -86,8 +86,8 @@ export function validateSkillFile(markdown: string, opts: ValidateOpts): string[
     errors.push("missing frontmatter block (--- ... ---)");
   } else {
     const body = fm[1];
-    const name = /^name:\s*(.*)$/m.exec(body)?.[1]?.trim();
-    const description = /^description:\s*(.*)$/m.exec(body)?.[1]?.trim();
+    const name = /^name:[ \t]*(.*)$/m.exec(body)?.[1]?.trim();
+    const description = /^description:[ \t]*(.*)$/m.exec(body)?.[1]?.trim();
     if (!name) errors.push("frontmatter is missing a non-empty name");
     if (!description) errors.push("frontmatter is missing a non-empty description");
   }
@@ -146,10 +146,6 @@ const skillsDir = join(repoRoot, "skills");
 describe("huggable skills", () => {
   const names = readdirSync(skillsDir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
 
-  it("has the four skills", () => {
-    expect(names.sort()).toEqual(["add-component", "audit", "establish", "migrate"]);
-  });
-
   for (const name of names) {
     it(`${name}/SKILL.md is valid (frontmatter + src refs exist)`, () => {
       const md = readFileSync(join(skillsDir, name, "SKILL.md"), "utf8");
@@ -160,10 +156,12 @@ describe("huggable skills", () => {
 });
 ```
 
+(The "exactly the four skills" count assertion is added in Task 3, once all four exist, so this task stays fully green with two valid skills.)
+
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd /Users/olliejarvis/Development/huggable && npx vitest run test/skills/skills.test.ts`
-Expected: FAIL — `skills` dir / files missing (and the "four skills" assertion fails). This task creates 2 of the 4; the suite goes fully green in Task 3.
+Expected: FAIL — the `skills/` directory and SKILL.md files don't exist yet.
 
 - [ ] **Step 3: Author `skills/establish/SKILL.md`**
 
@@ -187,7 +185,7 @@ Invoke the `frontend-design` skill for taste: the distinctive display+body type 
 State, in prose: 4–6 named hex colors, the display/body/mono typefaces, the spacing/type/radius personality, the motion budget, and the signature element. Then self-critique against the anti-slop list below and revise anything that reads as a default — say what you changed and why.
 
 ## 4. Write the token source
-Author `tokens.ts` as a two-tier `TokenSource` (see the type at `src/tokens/types.ts`): Tier-1 primitives (raw palette incl. oklch-extended shades, the Carbon-style even spacing ramp, radii, type scale, font families — never a banned font) and Tier-2 semantic maps with purpose/role names (`bg.canvas`, `text.body`, `surface.card`, `accent.default`). Ship light + dark (+ a brand variant) as semantic maps over the same primitives.
+Author `tokens.ts` as a two-tier `TokenSource` (see the type at `src/tokens/types.ts`): Tier-1 primitives (raw palette incl. oklch-extended shades, the Carbon-style even spacing ramp, radii, type scale, and font families, never a banned font) and Tier-2 semantic maps with purpose/role names. Colors like `bg.canvas`, `surface.card`, `accent.default` go in `semantic.color`; text roles like `body`/`heading`/`caption` go in `semantic.text`. Ship light + dark (and a brand variant) as semantic maps over the same primitives.
 
 ## 5. Generate + seed
 Run the codegen CLI at `src/cli/tokens-codegen.ts` (`--in tokens.ts --out-dir <app>/src/design --target rn|web|both`) to emit the Restyle theme (RN) and StyleX vars (web). Seed the Tier-1 primitives (Box/Text/Stack/Pressable/Icon) on the generated theme. Build variants with the `defineVariants` helper at `src/variants/define-variants.ts`. Register components via `src/registry/build-registry.ts`.
@@ -224,10 +222,10 @@ Boot the app, screenshot the key screens, and critique them against the vocalize
 Report: off-system value count (target 0 on touched files), any tier violations, any unexplained `huggable-allow`, and the critique verdict. "Done" = all clear.
 ```
 
-- [ ] **Step 5: Run the test (expect the per-skill validations to pass; the "four skills" count still fails until Task 3)**
+- [ ] **Step 5: Run the test to verify it passes**
 
 Run: `cd /Users/olliejarvis/Development/huggable && npx vitest run test/skills/skills.test.ts`
-Expected: the `establish` and `audit` per-file validation tests PASS; the "has the four skills" test FAILS (only 2 exist). This is expected — Task 3 adds the other two and turns the suite green.
+Expected: PASS — both `establish` and `audit` validate clean (frontmatter present; every `src/...` reference resolves). Then run the full suite + `npm run typecheck` to confirm both green before committing.
 
 - [ ] **Step 6: Commit**
 
@@ -262,13 +260,13 @@ description: Use when a new UI component is needed, to create it so it adheres t
 The rule that prevents every screen becoming custom: build the new component from existing lower-order ones; only create a new primitive on a real gap.
 
 ## 1. Resolve, don't reinvent
-Query the component registry (`src/registry/build-registry.ts`) first. Resolve the request to the LOWEST tier that satisfies it, and compose from components that already exist. Create a new lower-tier primitive only if there is a genuine gap — then register it.
+Query the component registry (`src/registry/build-registry.ts`) first. Resolve the request to the LOWEST tier that satisfies it, and compose from components that already exist. Create a new lower-tier primitive only if there is a genuine gap, then register it.
 
 ## 2. Token-only styles
 Style exclusively through token props on the primitives (`<Box bg="surface.card" p="5" radius="md">`) — never raw hex/numbers. Express variants with `defineVariants` (`src/variants/define-variants.ts`): base + variant groups + defaults (+ compound/boolean), returning token-keyed style props.
 
 ## 3. Behavior
-For accessible behavior, build on the headless layer (RN: @rn-primitives; web: Base UI) — own the styled component, depend only on the behavior.
+For accessible behavior, build on the headless layer (RN: @rn-primitives; web: Base UI). Own the styled component; depend only on the behavior.
 
 ## 4. Register + gate
 Record the component's tier + dependencies in the registry. It is not "done" until `validateTierBoundaries` (`src/registry/validate-tiers.ts`) is clean and `huggable:audit` is green.
@@ -308,17 +306,27 @@ Run `huggable:audit` until off-system count is 0 on the batch and tier boundarie
 One batch = git checkpoint + audit + visual-regression gate, reviewable and revertible. Migrate by screen, not all at once.
 ```
 
-- [ ] **Step 3: Run the full skills suite to verify it goes green**
+- [ ] **Step 3: Add the "exactly four skills" assertion to `test/skills/skills.test.ts`**
+
+Inside the `describe("huggable skills", ...)` block, just before the `for (const name of names)` loop, add:
+
+```ts
+  it("has exactly the four skills", () => {
+    expect(names.sort()).toEqual(["add-component", "audit", "establish", "migrate"]);
+  });
+```
+
+- [ ] **Step 4: Run the full skills suite to verify it goes green**
 
 Run: `cd /Users/olliejarvis/Development/huggable && npx vitest run test/skills/skills.test.ts`
-Expected: PASS — "has the four skills" now passes, and all four per-skill validations pass (frontmatter present; every `src/...` reference resolves).
+Expected: PASS — the count assertion passes (all four skills exist) and all four per-skill validations pass (frontmatter present; every `src/...` reference resolves).
 
-- [ ] **Step 4: Run full suite + typecheck**
+- [ ] **Step 5: Run full suite + typecheck**
 
 Run: `cd /Users/olliejarvis/Development/huggable && npm test && npm run typecheck`
 Expected: all tests pass (Plans 01–04's 92 + this plan's cases); `tsc --noEmit` exits 0.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
 cd /Users/olliejarvis/Development/huggable
